@@ -1,9 +1,12 @@
 import os
 from twilio.rest import Client
 from dotenv import load_dotenv
+from flask import Flask, request, jsonify
 
 # load environment variables
 load_dotenv()
+
+app = Flask(__name__)
 
 # defining auth variables and fetching them from .env
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
@@ -13,13 +16,24 @@ whatsapp_number = os.getenv("WHATSAPP_NUMBER")
 # adding the auth variables to client modular
 client = Client(account_sid, auth_token)
 
-# sending the message 
-message = client.messages.create(
-    from_ = 'whatsapp:+14155238886', 
-    content_sid = 'HXb5b62575e6e4ff6129ad7c8efe1f983e',
-    content_variables = '{"1":"12/1","2":"3pm"}',
-    to = whatsapp_number
-)
+@app.route("/send_whatsapp", methods = ["POST"])
+def send_whatsapp():
+    data = request.get_json()
+    recepient = data.get("to")
+    message = data.get("message")
 
-print message id to ensure it was sent
-print(message.sid)
+    if not recepient or not message:
+        return jsonify({"error":"Missing 'to' or 'message' parameter"}), 400
+    else:
+        try:
+            client.messages.create(
+                body = message, 
+                from_ = 'whatsapp:+14155238886',
+                to = f"whatsapp:{recepient}"
+            )
+            return jsonify({"status":"success", "messages":"whatsapp notification sent"})
+        except Exception as e:
+            return jsonify({"error":str(e)}), 500
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
