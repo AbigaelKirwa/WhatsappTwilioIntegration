@@ -12,6 +12,8 @@ app = Flask(__name__)
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
 auth_token = os.getenv("TWILIO_AUTH_TOKEN")
 whatsapp_number = os.getenv("WHATSAPP_NUMBER")
+whatsapp_send_to_number = os.getenv("WHATSAPP_SEND_TO_NUMBER")
+
 
 # adding the auth variables to client modular
 client = Client(account_sid, auth_token)
@@ -28,7 +30,7 @@ def send_whatsapp():
         try:
             client.messages.create(
                 body = message, 
-                from_ = 'whatsapp:+14155238886',
+                from_ = whatsapp_send_to_number,
                 to = f"whatsapp:{recepient}"
             )
             return jsonify({"status":"success", "messages":"whatsapp notification sent"})
